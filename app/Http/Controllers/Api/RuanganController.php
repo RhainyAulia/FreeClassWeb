@@ -61,6 +61,36 @@ class RuanganController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
-}
+    }
+    
+    public function ruanganTersedia(Request $request)
+    {
+        $tanggal = $request->query('tanggal');
+        $id_slot = $request->query('id_slot');
+
+        $hari = Carbon::parse($tanggal)->locale('id')->dayName;
+
+        $dipakaiJadwal = DB::table('jadwal_rutin')
+            ->where('hari', $hari)
+            ->where('id_slot', $id_slot)
+            ->pluck('id_ruangan');
+
+        $dipakaiPinjam = DB::table('peminjaman')
+            ->where('tanggal', $tanggal)
+            ->where('id_slot', $id_slot)
+            ->where('status', 'Disetujui')
+            ->pluck('id_ruangan');
+
+        $dipakai = $dipakaiJadwal->merge($dipakaiPinjam)->unique();
+
+        $tersedia = DB::table('ruangan')
+            ->where('jenis_ruangan', 'Kelas')
+            ->where('status_aktif', 1)
+            ->whereNotIn('id_ruangan', $dipakai)
+            ->select('id_ruangan', 'nama_ruangan')
+            ->get();
+
+        return response()->json($tersedia);
+    }
 
 }

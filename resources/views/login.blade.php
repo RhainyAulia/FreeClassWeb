@@ -74,7 +74,7 @@
         <div class="mb-4">
           <input type="password" class="form-control" placeholder="Enter Your Password">
         </div>
-        <a class="btn bg-black w-100 text-white" type="submit" href="http://127.0.0.1:8000/profile/dashboard" role="button">Login</a>
+        <a class="btn bg-black w-100 text-white" type="submit" href="http://127.0.0.1:8000/admin/dashboard" role="button">Login</a>
       </form>
     </div>
   </div>

@@ -1,22 +1,38 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AdminController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminPeminjamanController;
 
-// Halaman utama (redirect ke login)
+// =====================================================================
+// REDIRECT ROOT KE LOGIN
+// =====================================================================
 Route::get('/', function () {
-    return redirect('/profile/login');
+    return redirect('/admin/login');
 });
 
-// Halaman login
-Route::get('/profile/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/profile/login', [LoginController::class, 'login'])->name('login.submit');
+// =====================================================================
+// AUTH (Login untuk admin)
+// =====================================================================
+Route::get('/admin/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/admin/login', [LoginController::class, 'login'])->name('login.submit');
 
-// Halaman dashboard
-Route::get('/profile/dashboard', [ProfileController::class, 'dashboard'])->name('dashboard');
+// =====================================================================
+// DASHBOARD ADMIN (Dikelola oleh AdminPeminjamanController)
+// =====================================================================
+Route::get('/admin/dashboard', [AdminPeminjamanController::class, 'dashboard'])->name('admin.dashboard');
 
-// Halaman data ruangan & jadwal (opsional)
+// =====================================================================
+// AKSI ADMIN - SETUJUI / TOLAK / FILTER
+// =====================================================================
+Route::post('/peminjaman/{id}/setujui', [AdminPeminjamanController::class, 'setujui'])->name('peminjaman.setujui');
+Route::post('/peminjaman/{id}/tolak', [AdminPeminjamanController::class, 'tolak'])->name('peminjaman.tolak');
+Route::get('/peminjaman/filter', [AdminPeminjamanController::class, 'filter']);
+
+
+// =====================================================================
+// OPSIONAL: Fitur Admin Tambahan (ruangan, jadwal, dll)
+// =====================================================================
 // Route::get('/admin/ruangan', [AdminController::class, 'ruangan']);
 // Route::get('/admin/jadwal', [AdminController::class, 'jadwal']);
