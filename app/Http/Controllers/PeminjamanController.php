@@ -21,9 +21,8 @@ class PeminjamanController extends Controller
             'jumlah_orang' => 'required|integer',
         ]);
 
-        // Buat kode acak
-        $kode = 'PIN-' . strtoupper(substr(md5(uniqid()), 0, 6));
-        $validated['kode_peminjaman'] = $kode;
+        // Buat kode
+        $validated['kode_peminjaman'] = 'FC' . now()->format('YmdHis');
 
         // Simpan ke DB
         $peminjaman = Peminjaman::create($validated);
@@ -66,6 +65,12 @@ class PeminjamanController extends Controller
         $peminjaman->save();
 
         return response()->json(['message' => 'Peminjaman berhasil dibatalkan']);
+    }
+
+    public function index()
+    {
+        $peminjaman = Peminjaman::all();
+        return response()->json($peminjaman);
     }
     
 }

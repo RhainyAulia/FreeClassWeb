@@ -4,7 +4,6 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "update": "node scripts/update-api.cjs"
     },
     "devDependencies": {
         "axios": "^1.6.4",
