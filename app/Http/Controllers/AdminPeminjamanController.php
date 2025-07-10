@@ -14,7 +14,7 @@ class AdminPeminjamanController extends Controller
             // Waktu sekarang
             $now = Carbon::now();
             $today = now()->toDateString(); // 2025-07-06
-            $timeNow = now()->format('H:i:s'); // 10:15:00 (pastikan tanpa microsecond!)
+            $timeNow = now()->format('H:i:s'); // 10:15:00 
             $hari = now()->locale('id')->dayName; // Senin, dst
 
             // Total kelas aktif

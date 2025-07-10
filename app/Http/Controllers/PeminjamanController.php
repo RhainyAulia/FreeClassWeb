@@ -35,19 +35,37 @@ class PeminjamanController extends Controller
     }
 
     public function showByKode($kode)
-{
-    $data = Peminjaman::where('kode_peminjaman', $kode)->first();
+    {
+        $data = Peminjaman::where('kode_peminjaman', $kode)->first();
 
-    if (!$data) {
+        if (!$data) {
+            return response()->json([
+                'message' => 'Kode peminjaman tidak ditemukan'
+            ], 404);
+        }
+
         return response()->json([
-            'message' => 'Kode peminjaman tidak ditemukan'
-        ], 404);
+            'message' => 'Data ditemukan',
+            'data' => $data
+        ]);
     }
 
-    return response()->json([
-        'message' => 'Data ditemukan',
-        'data' => $data
-    ]);
-}
+    public function batalkan($kode)
+    {
+        $peminjaman = Peminjaman::where('kode_peminjaman', $kode)->first();
 
+        if (!$peminjaman) {
+            return response()->json(['message' => 'Peminjaman tidak ditemukan'], 404);
+        }
+
+        if ($peminjaman->status != 'Menunggu') {
+            return response()->json(['message' => 'Peminjaman tidak bisa dibatalkan'], 400);
+        }
+
+        $peminjaman->status = 'Ditolak';
+        $peminjaman->save();
+
+        return response()->json(['message' => 'Peminjaman berhasil dibatalkan']);
+    }
+    
 }
