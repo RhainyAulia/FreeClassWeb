@@ -12,43 +12,45 @@ class RuanganController extends Controller
     public function ruanganTerpakai(Request $request)
     {
         try {
-            $hari = match (Carbon::now()->dayOfWeekIso) {
-                1 => 'Senin',
-                2 => 'Selasa',
-                3 => 'Rabu',
-                4 => 'Kamis',
-                5 => 'Jumat',
-                6 => 'Sabtu',
-                7 => 'Minggu',
-            };
+            $tanggal = $request->query('tanggal', Carbon::now()->toDateString());
+            $idSlot = $request->query('id_slot');
 
-            $nowDate = Carbon::now()->toDateString();
-            $nowTime = Carbon::now()->format('H:i:s');
+            if (!$idSlot) {
+                return response()->json(['error' => 'Parameter id_slot diperlukan'], 400);
+            }
 
-            // Query jadwal_rutin
+            $hari = Carbon::parse($tanggal)->locale('id')->dayName;
+
+            // Ambil slot waktu
+            $slot = DB::table('slot_waktu')->where('id_slot', $idSlot)->first();
+            if (!$slot) {
+                return response()->json(['error' => 'Slot tidak ditemukan'], 404);
+            }
+
+            // Jadwal Rutin
             $jadwalRutin = DB::table('jadwal_rutin as jr')
                 ->join('slot_waktu as sw', 'jr.id_slot', '=', 'sw.id_slot')
                 ->join('ruangan as r', 'jr.id_ruangan', '=', 'r.id_ruangan')
                 ->where('r.jenis_ruangan', 'Kelas')
                 ->where('r.status_aktif', 1)
                 ->where('jr.hari', $hari)
-                ->whereDate('jr.tanggal_mulai_efektif', '<=', $nowDate)
-                ->whereDate('jr.tanggal_selesai_efektif', '>=', $nowDate)
-                ->whereRaw('? BETWEEN sw.jam_mulai AND sw.jam_selesai', [$nowTime])
+                ->whereDate('jr.tanggal_mulai_efektif', '<=', $tanggal)
+                ->whereDate('jr.tanggal_selesai_efektif', '>=', $tanggal)
+                ->where('jr.id_slot', $idSlot)
                 ->select(
                     'r.id_ruangan',
                     DB::raw("CONCAT('Ruang ', r.nama_ruangan) AS nama_ruangan"),
                     DB::raw("CONCAT(sw.jam_mulai, ' s/d ', sw.jam_selesai) AS waktu")
                 );
 
-            // Query peminjaman
+            // Peminjaman
             $peminjaman = DB::table('peminjaman as p')
                 ->join('ruangan as r', 'p.id_ruangan', '=', 'r.id_ruangan')
                 ->where('r.jenis_ruangan', 'Kelas')
                 ->where('r.status_aktif', 1)
                 ->where('p.status', 'Disetujui')
-                ->whereDate('p.tanggal', $nowDate)
-                ->whereRaw('? BETWEEN p.jam_mulai AND p.jam_selesai', [$nowTime])
+                ->whereDate('p.tanggal', $tanggal)
+                ->where('p.id_slot', $idSlot)
                 ->select(
                     'r.id_ruangan',
                     DB::raw("CONCAT('Ruang ', r.nama_ruangan) AS nama_ruangan"),
