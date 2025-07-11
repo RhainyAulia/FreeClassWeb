@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Peminjaman;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PeminjamanController extends Controller
 {
@@ -72,5 +74,42 @@ class PeminjamanController extends Controller
         $peminjaman = Peminjaman::all();
         return response()->json($peminjaman);
     }
-    
+
+    public function ruanganTerpakai()
+    {
+        $now = Carbon::now();
+        $today = $now->toDateString();
+        $timeNow = $now->format('H:i:s');
+        $hari = $now->locale('id')->dayName;
+        $timeNow = $now->format('H:i:s');
+        $hari = $now->locale('id')->dayName;
+
+        // Dari jadwal rutin
+        $jadwalRutin = DB::table('jadwal_rutin as jr')
+            ->join('slot_waktu as sw', 'jr.id_slot', '=', 'sw.id_slot')
+            ->join('ruangan as r', 'jr.id_ruangan', '=', 'r.id_ruangan')
+            ->where('r.status_aktif', 1)
+            ->where('jr.hari', $hari)
+            ->whereDate('jr.tanggal_mulai_efektif', '<=', $today)
+            ->whereDate('jr.tanggal_selesai_efektif', '>=', $today)
+            ->whereRaw('? BETWEEN sw.jam_mulai AND sw.jam_selesai', [$timeNow])
+            ->select('r.id_ruangan', 'r.nama_ruangan as nama', 'r.lokasi', 'r.kapasitas');
+
+        // Dari peminjaman yang disetujui
+        $peminjaman = DB::table('peminjaman as p')
+            ->join('ruangan as r', 'p.id_ruangan', '=', 'r.id_ruangan')
+            ->where('r.status_aktif', 1)
+            ->where('p.status', 'Disetujui')
+            ->whereDate('p.tanggal', $today)
+            ->whereRaw('? BETWEEN p.jam_mulai AND p.jam_selesai', [$timeNow])
+            ->select('r.id_ruangan', 'r.nama_ruangan as nama', 'r.lokasi', 'r.kapasitas');
+
+        $result = $jadwalRutin->union($peminjaman)->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $result
+        ]);
+
+    }
 }
