@@ -170,8 +170,18 @@ class AdminPeminjamanController extends Controller
             $query->whereDate('peminjaman.tanggal', Carbon::today());
         }
 
-        if ($request->has('jabatan') && in_array(strtolower($request->jabatan), ['mahasiswa', 'dosen'])) {
-            $query->where('peminjaman.jabatan', ucfirst(strtolower($request->jabatan)));
+        $jabatanFilter = strtolower($request->query('jabatan', ''));
+
+        if ($jabatanFilter === 'mahasiswa') {
+            $query->whereRaw('LOWER(jabatan) LIKE ?', ['%mahasiswa%']);
+        } elseif ($jabatanFilter === 'dosen') {
+            $query->whereRaw('LOWER(jabatan) LIKE ?', ['%dosen%']);
+        } elseif ($jabatanFilter === 'staff') {
+            $query->whereRaw('LOWER(jabatan) LIKE ?', ['%staff%']);
+        } elseif ($jabatanFilter === 'lainnya') {
+            $query->whereRaw('LOWER(jabatan) NOT LIKE ? AND LOWER(jabatan) NOT LIKE ? AND LOWER(jabatan) NOT LIKE ?', [
+                '%mahasiswa%', '%dosen%', '%staff%'
+            ]);
         }
 
         $data = $query->select(
