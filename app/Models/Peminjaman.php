@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Peminjaman extends Model
 {
+    
     use HasFactory;
 
     protected $table = 'peminjaman';
@@ -25,4 +26,11 @@ class Peminjaman extends Model
         'jumlah_orang',
         'status'
     ];
+
+        public function ruangan()
+        {
+            return $this->belongsTo(Ruangan::class, 'id_ruangan');
+        }
 }
+
+
